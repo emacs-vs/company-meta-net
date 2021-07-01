@@ -1,8 +1,8 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-![CI](https://github.com/emacs-vs/company-csproj/workflows/CI/badge.svg)
+![CI](https://github.com/emacs-vs/company-meta-net/workflows/CI/badge.svg)
 
-# company-csproj
-> company-mode backend for C# project
+# company-meta-net
+> Company completion for C# project using meta-net
 
 ## :floppy_disk: Quickstart
 
