@@ -1,14 +1,14 @@
-;;; company-csproj.el --- company-mode backend for C# project  -*- lexical-binding: t; -*-
+;;; company-meta-net.el --- Company completion for C# project using meta-net  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2021  Shen, Jen-Chieh
 ;; Created date 2021-06-24 21:19:45
 
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
-;; Description: company-mode backend for C# project
+;; Description: Company completion for C# project using meta-net
 ;; Keyword: csproj csharp company
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.3") (company "0.8.12"))
-;; URL: https://github.com/emacs-vs/company-csproj
+;; URL: https://github.com/emacs-vs/company-meta-net
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -27,12 +27,18 @@
 
 ;;; Commentary:
 ;;
-;; company-mode backend for C# project.
+;; Company completion for C# project using meta-net
 ;;
 
 ;;; Code:
 
 (require 'company)
 
-(provide 'company-csproj)
-;;; company-csproj.el ends here
+(defgroup company-meta-net nil
+  "Company completion for C# project using meta-net."
+  :prefix "meta-net-"
+  :group 'tool
+  :link '(url-link :tag "Repository" "https://github.com/emacs-vs/meta-net"))
+
+(provide 'company-meta-net)
+;;; company-meta-net.el ends here
