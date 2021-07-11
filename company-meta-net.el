@@ -56,15 +56,6 @@
 ;; (@* "Util" )
 ;;
 
-(defun company-meta-net--re-seq (regexp string)
-  "Get a list of all REGEXP match in a STRING."
-  (save-match-data
-    (let ((pos 0) matches)
-      (while (string-match regexp string pos)
-        (push (match-string 1 string) matches)
-        (setq pos (match-end 0)))
-      matches)))
-
 ;;
 ;; (@* "Core" )
 ;;
