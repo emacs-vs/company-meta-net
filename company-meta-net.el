@@ -41,7 +41,53 @@
   :group 'tool
   :link '(url-link :tag "Repository" "https://github.com/emacs-vs/company-meta-net"))
 
+(defcustom company-meta-net-active-modes
+  '(csharp-mode csharp-tree-sitter-mode)
+  "Major modes that allow completion."
+  :type 'list
+  :group 'meta-view)
 
+(defvar-local company-meta-net--namespaces nil
+  "Where store all the parsed namespaces.")
+
+;;
+;; (@* "Core" )
+;;
+
+(defun company-meta-net--prepare ()
+  "Prepare this package wit meta-net."
+  (when (memq major-mode company-meta-net-active-modes)
+    (meta-net-read-project)))
+
+(defun company-meta-net--grab-namespaces ()
+  "Parsed namespaces from current buffer."
+  )
+
+;;
+;; (@* "Company" )
+;;
+
+(defun company-meta-net--prefix ()
+  "Return the string represent the prefix."
+  (when (and (not (company-in-string-or-comment)) (company-meta-net--prepare))
+    (or (company-grab-symbol-cons "\\." 1) 'stop)))
+
+(defun company-meta-net--candidates ()
+  ""
+  )
+
+(defun company-meta-net (command &optional arg &rest ignored)
+  "Company backend for VS C# project.
+
+Arguments COMMAND, ARG and IGNORED are standard arguments from `company-mode`."
+  (interactive (list 'interactive))
+  (cl-case command
+    (interactive (company-begin-backend 'company-meta-net))
+    (prefix (company-meta-net--prefix))
+    (annotation (company-meta-net--candidates))
+    (candidates )
+    (doc-buffer )
+    (kind )))
 
 (provide 'company-meta-net)
 ;;; company-meta-net.el ends here
