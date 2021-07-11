@@ -7,7 +7,7 @@
 ;; Description: Company completion for C# project using meta-net
 ;; Keyword: csproj csharp company
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "24.3") (company "0.8.12") (meta-net "1.1.0"))
+;; Package-Requires: ((emacs "25.1") (company "0.8.12") (meta-net "1.1.0"))
 ;; URL: https://github.com/emacs-vs/company-meta-net
 
 ;; This file is NOT part of GNU Emacs.
