@@ -49,31 +49,6 @@
   :type 'list
   :group 'meta-view)
 
-;; These keywords are grab from `csharp-mode'
-(defconst company-meta-net--csharp-keywords
-  (append
-   '("class" "interface" "struct")
-   '("bool" "byte" "sbyte" "char" "decimal" "double" "float" "int" "uint"
-     "long" "ulong" "short" "ushort" "void" "object" "string" "var")
-   '("typeof" "is" "as")
-   '("enum" "new")
-   '("using")
-   '("abstract" "default" "final" "native" "private" "protected"
-     "public" "partial" "internal" "readonly" "static" "event" "transient"
-     "volatile" "sealed" "ref" "out" "virtual" "implicit" "explicit"
-     "fixed" "override" "params" "async" "await" "extern" "unsafe"
-     "get" "set" "this" "const" "delegate")
-   '("select" "from" "where" "join" "in" "on" "equals" "into"
-     "orderby" "ascending" "descending" "group" "when"
-     "let" "by" "namespace")
-   '("do" "else" "finally" "try")
-   '("for" "if" "switch" "while" "catch" "foreach" "fixed" "checked"
-     "unchecked" "using" "lock")
-   '("break" "continue" "goto" "throw" "return" "yield")
-   '("true" "false" "null" "value")
-   '("base" "operator"))
-  "Some C# keywords to eliminate namespaces")
-
 (defvar-local company-meta-net--namespaces nil
   "Where store all the parsed namespaces.")
 
