@@ -6,7 +6,7 @@
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
 ;; Description: Company completion for C# project using meta-net
 ;; Keyword: csproj csharp company
-;; Version: 0.0.1
+;; Version: 0.1.0
 ;; Package-Requires: ((emacs "24.3") (company "0.8.12") (meta-net "1.1.0"))
 ;; URL: https://github.com/emacs-vs/company-meta-net
 
@@ -38,7 +38,9 @@
   "Company completion for C# project using meta-net."
   :prefix "meta-net-"
   :group 'tool
-  :link '(url-link :tag "Repository" "https://github.com/emacs-vs/meta-net"))
+  :link '(url-link :tag "Repository" "https://github.com/emacs-vs/company-meta-net"))
+
+
 
 (provide 'company-meta-net)
 ;;; company-meta-net.el ends here
