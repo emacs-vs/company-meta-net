@@ -52,9 +52,16 @@
 (defvar-local company-meta-net--namespaces nil
   "Where store all the parsed namespaces.")
 
+(defvar company-meta-net-show-debug nil
+  "Show the debug message from this package.")
+
 ;;
 ;; (@* "Util" )
 ;;
+
+(defun company-meta-net-debug (fmt &rest args)
+  "Debug message like function `message' with same argument FMT and ARGS."
+  (when company-meta-net-show-debug (apply 'message fmt args)))
 
 ;;
 ;; (@* "Core" )
@@ -63,7 +70,8 @@
 (defun company-meta-net--prepare ()
   "Prepare this package wit meta-net."
   (when (memq major-mode company-meta-net-active-modes)
-    (meta-net-read-project)))
+    (meta-net-read-project)
+    meta-net-csproj-current))
 
 (defun company-meta-net--grab-namespaces ()
   "Parsed namespaces from current buffer."
@@ -78,6 +86,21 @@
             (push symbol company-meta-net--namespaces))))))
   (setq company-meta-net--namespaces (delete-dups (reverse company-meta-net--namespaces))))
 
+(defun company-meta-net--match-name (type)
+  "Return non-nil, if the TYPE match the current namespace list.
+
+The argument TYPE is a list of namespace in string.  For instance,
+
+   using System.Collections;  => '(System Collections)
+
+We use this to eliminate not possible candidates."
+  (let ((match t) (len (length type)) (index 0) item)
+    (while (and match (< index len))
+      (setq item (nth index type)
+            index (1+ index)
+            match (member item company-meta-net--namespaces)))
+    match))
+
 ;;
 ;; (@* "Company" )
 ;;
@@ -88,8 +111,45 @@
     (or (company-grab-symbol-cons "\\." 1) 'stop)))
 
 (defun company-meta-net--candidates ()
-  ""
-  )
+  "Return a possible candidates from current point."
+  (company-meta-net--grab-namespaces)
+  (let* ((xmls (meta-view--all-xmls))  ; Get the list of xml files from current project
+         (xmls-len (length xmls))      ; length of the xmls
+         (xml-index 0)                 ; index search through all `xmls`
+         (project meta-net-csproj-current)
+         meta-view--namespaces  ; list namespace that displays on top, under `endregion'
+         xml          ; current xml path as key
+         break        ; flag to stop
+         type         ; xml assembly type
+         comp-name    ; name of the type, the last component from the type
+         splits       ; temporary list to chop namespace, use to produce `comp-name`
+         candidates)  ; final results
+    (while (and (not break) (< xml-index xmls-len))
+      (setq xml (nth xml-index xmls)
+            xml-index (1+ xml-index))
+      (let* ((types (meta-net-xml-types xml))
+             (types-len (length types))
+             (type-index 0))
+        (while (and (not break) (< type-index types-len))
+          (setq type (nth type-index types)
+                type-index (1+ type-index)
+                splits (split-string type "\\.")
+                comp-name (nth (1- (length splits)) splits))
+          ;; Check if all namespaces appears in the buffer,
+          ;;
+          ;; We use `butlast' to get rid of the component name because we do
+          ;; allow the same level candidates. For example, `NamespaceA` contains
+          ;; `classA` and `classB`, and we ignore the check of classA and classB
+          ;; in order to let them appears in our candidates list!
+          (when (company-meta-net--match-name (butlast splits))
+            (setq candidates (append candidates splits))
+            (company-meta-net-debug "\f")
+            (company-meta-net-debug "xml: %s" xml)
+            (company-meta-net-debug "Type: %s" type)
+            (company-meta-net-debug "Name: %s" comp-name)
+            ))))
+    (setq candidates (delete-dups candidates))
+    candidates))
 
 (defun company-meta-net (command &optional arg &rest ignored)
   "Company backend for VS C# project.
