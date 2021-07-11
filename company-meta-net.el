@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(require 'subr-x)
+
 (require 'company)
 (require 'meta-net)
 
@@ -47,8 +49,46 @@
   :type 'list
   :group 'meta-view)
 
+;; These keywords are grab from `csharp-mode'
+(defconst company-meta-net--csharp-keywords
+  (append
+   '("class" "interface" "struct")
+   '("bool" "byte" "sbyte" "char" "decimal" "double" "float" "int" "uint"
+     "long" "ulong" "short" "ushort" "void" "object" "string" "var")
+   '("typeof" "is" "as")
+   '("enum" "new")
+   '("using")
+   '("abstract" "default" "final" "native" "private" "protected"
+     "public" "partial" "internal" "readonly" "static" "event" "transient"
+     "volatile" "sealed" "ref" "out" "virtual" "implicit" "explicit"
+     "fixed" "override" "params" "async" "await" "extern" "unsafe"
+     "get" "set" "this" "const" "delegate")
+   '("select" "from" "where" "join" "in" "on" "equals" "into"
+     "orderby" "ascending" "descending" "group" "when"
+     "let" "by" "namespace")
+   '("do" "else" "finally" "try")
+   '("for" "if" "switch" "while" "catch" "foreach" "fixed" "checked"
+     "unchecked" "using" "lock")
+   '("break" "continue" "goto" "throw" "return" "yield")
+   '("true" "false" "null" "value")
+   '("base" "operator"))
+  "Some C# keywords to eliminate namespaces")
+
 (defvar-local company-meta-net--namespaces nil
   "Where store all the parsed namespaces.")
+
+;;
+;; (@* "Util" )
+;;
+
+(defun company-meta-net--re-seq (regexp string)
+  "Get a list of all REGEXP match in a STRING."
+  (save-match-data
+    (let ((pos 0) matches)
+      (while (string-match regexp string pos)
+        (push (match-string 1 string) matches)
+        (setq pos (match-end 0)))
+      matches)))
 
 ;;
 ;; (@* "Core" )
@@ -61,7 +101,16 @@
 
 (defun company-meta-net--grab-namespaces ()
   "Parsed namespaces from current buffer."
-  )
+  (setq company-meta-net--namespaces nil)
+  (save-excursion
+    (goto-char (point-min))
+    (while (re-search-forward "[,.:]*[ \t\n]*\\([a-z-A-Z0-9_-]+\\)[ \t\n]*[.;{]+" nil t)
+      (save-excursion
+        (forward-symbol -1)
+        (unless (company-in-string-or-comment)
+          (when-let ((symbol (thing-at-point 'symbol)))
+            (push symbol company-meta-net--namespaces))))))
+  (setq company-meta-net--namespaces (delete-dups (reverse company-meta-net--namespaces))))
 
 ;;
 ;; (@* "Company" )
