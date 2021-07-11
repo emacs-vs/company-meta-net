@@ -33,6 +33,7 @@
 ;;; Code:
 
 (require 'company)
+(require 'meta-net)
 
 (defgroup company-meta-net nil
   "Company completion for C# project using meta-net."
