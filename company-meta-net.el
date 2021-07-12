@@ -79,11 +79,11 @@
 (defvar-local company-meta-net--namespaces nil
   "Where store all the parsed namespaces.")
 
+(defvar-local company-meta-net--candidates (ht-create)
+  "Record candidates with it's information.")
+
 (defvar company-meta-net-show-debug nil
   "Show the debug message from this package.")
-
-(defvar-local company-meta-net--candidates (ht-create)
-  "")
 
 ;;
 ;; (@* "Util" )
@@ -173,7 +173,6 @@ ANNOTATION is needed before hand."
       (unless (string-match-p "(" key)  ; avoid method with full information
         (setq data (ht-get tag-data key)
               summary (ht-get data 'summary))
-        (jcs-print summary)
         (company-meta-net--add-candidates key annotation summary)))))
 
 (defun company-meta-net--prefix ()
@@ -253,6 +252,7 @@ ANNOTATION is needed before hand."
   "Return document for CANDIDATE."
   (company-doc-buffer (nth 1 (ht-get company-meta-net--candidates candidate))))
 
+;;;###autoload
 (defun company-meta-net (command &optional arg &rest ignored)
   "Company backend for VS C# project.
 
