@@ -7,7 +7,7 @@
 ;; Description: Company completion for C# project using meta-net
 ;; Keyword: csproj csharp company
 ;; Version: 0.1.0
-;; Package-Requires: ((emacs "25.1") (company "0.8.12") (meta-net "1.1.0"))
+;; Package-Requires: ((emacs "25.1") (company "0.8.12") (meta-net "1.1.0") (ht "2.3"))
 ;; URL: https://github.com/emacs-vs/company-meta-net
 
 ;; This file is NOT part of GNU Emacs.
@@ -37,6 +37,7 @@
 
 (require 'company)
 (require 'meta-net)
+(require 'ht)
 
 (defgroup company-meta-net nil
   "Company completion for C# project using meta-net."
@@ -80,6 +81,9 @@
 
 (defvar company-meta-net-show-debug nil
   "Show the debug message from this package.")
+
+(defvar-local company-meta-net--candidates (ht-create)
+  "")
 
 ;;
 ;; (@* "Util" )
@@ -151,18 +155,26 @@ We use this to eliminate not possible candidates."
 ;; (@* "Company" )
 ;;
 
-(defun company-meta-net--type-data (xml type)
-  "Return all TYPE's properties name in a list.
+(defun company-meta-net--add-candidates (name annotation doc-buffer)
+  "Add a candidate with it's display information.
 
-See function `meta-net--type-data-get' to get information about arguments XML
-and TYPE."
-  (let ((scope (list (meta-net-type-methods xml type)  ; this is a list of hash-table
-                     (meta-net-type-fields xml type)
-                     (meta-net-type-events xml type)
-                     (meta-net-type-properties xml type)))
-        result)
-    (dolist (data scope) (setq result (append result (ht-keys data))))
-    result))
+Argument NAME is a candidate string.  ANNOTATION and DOC-BUFFER are NAME's
+display information."
+  (ht-set company-meta-net--candidates name
+          (list annotation
+                doc-buffer)))
+
+(defun company-meta-net--add-tag-data (tag-data annotation)
+  "Add TAG-DATA to candidates list.
+
+ANNOTATION is needed before hand."
+  (let ((keys (ht-keys tag-data)) summary data)
+    (dolist (key keys)
+      (unless (string-match-p "(" key)  ; avoid method with full information
+        (setq data (ht-get tag-data key)
+              summary (ht-get data 'summary))
+        (jcs-print summary)
+        (company-meta-net--add-candidates key annotation summary)))))
 
 (defun company-meta-net--prefix ()
   "Return the string represent the prefix."
@@ -172,6 +184,7 @@ and TYPE."
 (defun company-meta-net--candidates ()
   "Return a possible candidates from current point."
   (company-meta-net--grab-namespaces)
+  (ht-clear company-meta-net--candidates)
   (let* ((xmls (company-meta-net--all-xmls))  ; Get the list of xml files from current project
          (xmls-len (length xmls))      ; length of the xmls
          (xml-index 0)                 ; index search through all `xmls`
@@ -181,7 +194,7 @@ and TYPE."
          type         ; xml assembly type
          comp-name    ; name of the type, the last component from the type
          splits       ; temporary list to chop namespace, use to produce `comp-name`
-         candidates)  ; final results
+         namespaces)
     (while (and (not break) (< xml-index xmls-len))
       (setq xml (nth xml-index xmls)
             xml-index (1+ xml-index))
@@ -192,7 +205,8 @@ and TYPE."
           (setq type (nth type-index types)
                 type-index (1+ type-index)
                 splits (split-string type "\\.")
-                comp-name (nth (1- (length splits)) splits))
+                comp-name (nth (1- (length splits)) splits)
+                namespaces (butlast splits))
           ;; Check if all namespaces appears in the buffer,
           ;;
           ;; We use `butlast' to get rid of the component name because we do
@@ -201,20 +215,43 @@ and TYPE."
           ;; For example, `NamespaceA` contains `classA` and `classB`, and we
           ;; ignore the check of `classA` and `classB` in order to let them
           ;; both appears in candidates list.
-          (when (company-meta-net--match-name (butlast splits))
-            (setq candidates (append candidates splits))  ; add for same level
+          (when (company-meta-net--match-name namespaces)
             (company-meta-net-debug "\f")
             (company-meta-net-debug "xml: %s" xml)
             (company-meta-net-debug "Type: %s" type)
             (company-meta-net-debug "Name: %s" comp-name)
+
+            (dolist (namespace namespaces)  ; add all namespaces
+              (company-meta-net--add-candidates
+               namespace "(Namespace)"  ; annotation
+               ""))                     ; doc-buffer, namespace has no document
+
+            ;; Add for same level
+            (company-meta-net--add-candidates
+             comp-name "(Type)"                 ; annotation
+             (meta-net-type-summary xml type))  ; doc-buffer
+
             ;; Variable `company-meta-net--namespaces' contains the type as
             ;; well, so we use this to see if the type appears in the buffer.
             ;;
             ;; If it does, we should add all it's properties to the list!
             (when (member comp-name company-meta-net--namespaces)
-              (setq candidates (append candidates (company-meta-net--type-data xml type))))))))
-    (setq candidates (delete-dups candidates))
-    candidates))
+              (let ((scope
+                     (list (cons (meta-net-type-methods xml type)    "(Method)")
+                           (cons (meta-net-type-fields xml type)     "(Field)")
+                           (cons (meta-net-type-events xml type)     "(Event)")
+                           (cons (meta-net-type-properties xml type) "(Property)"))))
+                (dolist (data scope)
+                  (company-meta-net--add-tag-data (car data) (cdr data)))))))))
+    (ht-keys company-meta-net--candidates)))
+
+(defun company-meta-net--annotation (candidate)
+  "Return annotation for CANDIDATE."
+  (nth 0 (ht-get company-meta-net--candidates candidate)))
+
+(defun company-meta-net--doc-buffer (candidate)
+  "Return document for CANDIDATE."
+  (company-doc-buffer (nth 1 (ht-get company-meta-net--candidates candidate))))
 
 (defun company-meta-net (command &optional arg &rest ignored)
   "Company backend for VS C# project.
@@ -224,11 +261,9 @@ Arguments COMMAND, ARG and IGNORED are standard arguments from `company-mode`."
   (cl-case command
     (interactive (company-begin-backend 'company-meta-net))
     (prefix (company-meta-net--prefix))
-    ;;(annotation )
     (candidates (company-meta-net--candidates))
-    ;;(doc-buffer )
-    ;;(kind )
-    ))
+    (annotation (company-meta-net--annotation arg))
+    (doc-buffer (company-meta-net--doc-buffer arg))))
 
 (provide 'company-meta-net)
 ;;; company-meta-net.el ends here
