@@ -41,7 +41,7 @@
 
 (defgroup company-meta-net nil
   "Company completion for C# project using meta-net."
-  :prefix "meta-net-"
+  :prefix "company-meta-net-"
   :group 'tool
   :link '(url-link :tag "Repository" "https://github.com/emacs-vs/company-meta-net"))
 
