@@ -32,6 +32,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'subr-x)
 
 (require 'company)
@@ -49,6 +50,31 @@
   :type 'list
   :group 'meta-view)
 
+;; These keywords are grab from `csharp-mode'
+(defconst company-meta-net--csharp-keywords
+  (append
+   '("class" "interface" "struct")
+   '("bool" "byte" "sbyte" "char" "decimal" "double" "float" "int" "uint"
+     "long" "ulong" "short" "ushort" "void" "object" "string" "var")
+   '("typeof" "is" "as")
+   '("enum" "new")
+   '("using")
+   '("abstract" "default" "final" "native" "private" "protected"
+     "public" "partial" "internal" "readonly" "static" "event" "transient"
+     "volatile" "sealed" "ref" "out" "virtual" "implicit" "explicit"
+     "fixed" "override" "params" "async" "await" "extern" "unsafe"
+     "get" "set" "this" "const" "delegate")
+   '("select" "from" "where" "join" "in" "on" "equals" "into"
+     "orderby" "ascending" "descending" "group" "when"
+     "let" "by" "namespace")
+   '("do" "else" "finally" "try")
+   '("for" "if" "switch" "while" "catch" "foreach" "fixed" "checked"
+     "unchecked" "using" "lock")
+   '("break" "continue" "goto" "throw" "return" "yield")
+   '("true" "false" "null" "value")
+   '("base" "operator"))
+  "Some C# keywords to eliminate namespaces.")
+
 (defvar-local company-meta-net--namespaces nil
   "Where store all the parsed namespaces.")
 
@@ -62,6 +88,22 @@
 (defun company-meta-net-debug (fmt &rest args)
   "Debug message like function `message' with same argument FMT and ARGS."
   (when company-meta-net-show-debug (apply 'message fmt args)))
+
+;;
+;; (@* "Xmls" )
+;;
+
+(defvar-local company-meta-net--xmls nil
+  "Cache records a list of assembly xml file path.")
+
+(defun company-meta-net--all-xmls (&optional refresh)
+  "Return full list of assembly xml files.
+
+If REFRESH is non-nil, refresh cache once."
+  (when (or refresh (null company-meta-net--xmls))
+    (setq company-meta-net--xmls (meta-net-csproj-xmls meta-net-csproj-current))
+    (cl-delete-duplicates company-meta-net--xmls))
+  company-meta-net--xmls)
 
 ;;
 ;; (@* "Core" )
@@ -84,7 +126,11 @@
         (unless (company-in-string-or-comment)
           (when-let ((symbol (thing-at-point 'symbol)))
             (push symbol company-meta-net--namespaces))))))
-  (setq company-meta-net--namespaces (delete-dups (reverse company-meta-net--namespaces))))
+  (setq company-meta-net--namespaces (reverse company-meta-net--namespaces)
+        company-meta-net--namespaces (delete-dups company-meta-net--namespaces)
+        company-meta-net--namespaces (cl-remove-if (lambda (namespace)
+                                                     (member namespace company-meta-net--csharp-keywords))
+                                                   company-meta-net--namespaces)))
 
 (defun company-meta-net--match-name (type)
   "Return non-nil, if the TYPE match the current namespace list.
@@ -105,6 +151,19 @@ We use this to eliminate not possible candidates."
 ;; (@* "Company" )
 ;;
 
+(defun company-meta-net--type-data (xml type)
+  "Return all TYPE's properties name in a list.
+
+See function `meta-net--type-data-get' to get information about arguments XML
+and TYPE."
+  (let ((scope (list (meta-net-type-methods xml type)  ; this is a list of hash-table
+                     (meta-net-type-fields xml type)
+                     (meta-net-type-events xml type)
+                     (meta-net-type-properties xml type)))
+        result)
+    (dolist (data scope) (setq result (append result (ht-keys data))))
+    result))
+
 (defun company-meta-net--prefix ()
   "Return the string represent the prefix."
   (when (and (not (company-in-string-or-comment)) (company-meta-net--prepare))
@@ -113,11 +172,10 @@ We use this to eliminate not possible candidates."
 (defun company-meta-net--candidates ()
   "Return a possible candidates from current point."
   (company-meta-net--grab-namespaces)
-  (let* ((xmls (meta-view--all-xmls))  ; Get the list of xml files from current project
+  (let* ((xmls (company-meta-net--all-xmls))  ; Get the list of xml files from current project
          (xmls-len (length xmls))      ; length of the xmls
          (xml-index 0)                 ; index search through all `xmls`
          (project meta-net-csproj-current)
-         meta-view--namespaces  ; list namespace that displays on top, under `endregion'
          xml          ; current xml path as key
          break        ; flag to stop
          type         ; xml assembly type
@@ -138,16 +196,23 @@ We use this to eliminate not possible candidates."
           ;; Check if all namespaces appears in the buffer,
           ;;
           ;; We use `butlast' to get rid of the component name because we do
-          ;; allow the same level candidates. For example, `NamespaceA` contains
-          ;; `classA` and `classB`, and we ignore the check of classA and classB
-          ;; in order to let them appears in our candidates list!
+          ;; allow the same level candidates.
+          ;;
+          ;; For example, `NamespaceA` contains `classA` and `classB`, and we
+          ;; ignore the check of `classA` and `classB` in order to let them
+          ;; both appears in candidates list.
           (when (company-meta-net--match-name (butlast splits))
-            (setq candidates (append candidates splits))
+            (setq candidates (append candidates splits))  ; add for same level
             (company-meta-net-debug "\f")
             (company-meta-net-debug "xml: %s" xml)
             (company-meta-net-debug "Type: %s" type)
             (company-meta-net-debug "Name: %s" comp-name)
-            ))))
+            ;; Variable `company-meta-net--namespaces' contains the type as
+            ;; well, so we use this to see if the type appears in the buffer.
+            ;;
+            ;; If it does, we should add all it's properties to the list!
+            (when (member comp-name company-meta-net--namespaces)
+              (setq candidates (append candidates (company-meta-net--type-data xml type))))))))
     (setq candidates (delete-dups candidates))
     candidates))
 
