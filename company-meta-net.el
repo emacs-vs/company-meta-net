@@ -112,7 +112,7 @@ If REFRESH is non-nil, refresh cache once."
 (defun company-meta-net--prepare ()
   "Prepare this package wit meta-net."
   (when (memq major-mode company-meta-net-active-modes)
-    (meta-net-read-project)
+    (unless meta-net-csproj-current (meta-net-read-project))
     meta-net-csproj-current))
 
 (defun company-meta-net--grab-namespaces ()
@@ -224,10 +224,11 @@ Arguments COMMAND, ARG and IGNORED are standard arguments from `company-mode`."
   (cl-case command
     (interactive (company-begin-backend 'company-meta-net))
     (prefix (company-meta-net--prefix))
-    (annotation (company-meta-net--candidates))
-    (candidates )
-    (doc-buffer )
-    (kind )))
+    ;;(annotation )
+    (candidates (company-meta-net--candidates))
+    ;;(doc-buffer )
+    ;;(kind )
+    ))
 
 (provide 'company-meta-net)
 ;;; company-meta-net.el ends here
