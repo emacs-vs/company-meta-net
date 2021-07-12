@@ -8,7 +8,12 @@
 
 ## :floppy_disk: Quickstart
 
-N/A
+```el
+(use-package company-meta-net
+  :ensure t
+  :hook (csharp-mode . (lambda ()
+                         (add-to-list 'company-backends 'company-meta-net))))
+```
 
 ## Contribution
 
