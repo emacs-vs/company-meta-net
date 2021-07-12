@@ -4,6 +4,8 @@
 # company-meta-net
 > Company completion for C# project using meta-net
 
+<img src="./etc/demo.png"/>
+
 ## :floppy_disk: Quickstart
 
 N/A
