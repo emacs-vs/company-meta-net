@@ -189,18 +189,17 @@ ANNOTATION is needed before hand."
          (xml-index 0)                 ; index search through all `xmls`
          (project meta-net-csproj-current)
          xml          ; current xml path as key
-         break        ; flag to stop
          type         ; xml assembly type
          comp-name    ; name of the type, the last component from the type
          splits       ; temporary list to chop namespace, use to produce `comp-name`
          namespaces)
-    (while (and (not break) (< xml-index xmls-len))
+    (while (< xml-index xmls-len)
       (setq xml (nth xml-index xmls)
             xml-index (1+ xml-index))
       (let* ((types (meta-net-xml-types xml))
              (types-len (length types))
              (type-index 0))
-        (while (and (not break) (< type-index types-len))
+        (while (< type-index types-len)
           (setq type (nth type-index types)
                 type-index (1+ type-index)
                 splits (split-string type "\\.")
