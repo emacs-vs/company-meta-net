@@ -51,6 +51,16 @@
   :type 'list
   :group 'meta-view)
 
+(defcustom company-meta-net-display-annotation t
+  "If non-nil, display annotation."
+  :type 'boolean
+  :group 'eldoc-meta-net)
+
+(defcustom company-meta-net-display-document t
+  "If non-nil, display document."
+  :type 'boolean
+  :group 'eldoc-meta-net)
+
 ;; These keywords are grab from `csharp-mode'
 (defconst company-meta-net--csharp-keywords
   (append
@@ -187,7 +197,6 @@ ANNOTATION is needed before hand."
   (let* ((xmls (company-meta-net--all-xmls))  ; Get the list of xml files from current project
          (xmls-len (length xmls))      ; length of the xmls
          (xml-index 0)                 ; index search through all `xmls`
-         (project meta-net-csproj-current)
          xml          ; current xml path as key
          type         ; xml assembly type
          comp-name    ; name of the type, the last component from the type
@@ -245,11 +254,16 @@ ANNOTATION is needed before hand."
 
 (defun company-meta-net--annotation (candidate)
   "Return annotation for CANDIDATE."
-  (nth 0 (ht-get company-meta-net--candidates candidate)))
+  (if company-meta-net-display-annotation
+      (nth 0 (ht-get company-meta-net--candidates candidate))
+    ""))
 
 (defun company-meta-net--doc-buffer (candidate)
   "Return document for CANDIDATE."
-  (company-doc-buffer (nth 1 (ht-get company-meta-net--candidates candidate))))
+  (company-doc-buffer
+   (if company-meta-net-display-document
+       (nth 1 (ht-get company-meta-net--candidates candidate))
+     "")))
 
 ;;;###autoload
 (defun company-meta-net (command &optional arg &rest ignored)
