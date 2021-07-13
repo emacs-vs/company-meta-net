@@ -15,6 +15,20 @@
                          (add-to-list 'company-backends 'company-meta-net))))
 ```
 
+## :hammer: Configurations
+
+#### `company-meta-net-active-modes`
+
+Major modes that allow completion.
+
+#### `company-meta-net-display-annotation`
+
+Display type annotation in company-mode's annotation command.
+
+#### `company-meta-net-display-document`
+
+Display document in company-mode's doc-buffer command.
+
 ## Contribution
 
 If you would like to contribute to this project, you may either
