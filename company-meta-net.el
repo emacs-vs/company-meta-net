@@ -1,6 +1,6 @@
 ;;; company-meta-net.el --- Company completion for C# project using meta-net  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2021  Shen, Jen-Chieh
+;; Copyright (C) 2021-2022  Shen, Jen-Chieh
 ;; Created date 2021-06-24 21:19:45
 
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
