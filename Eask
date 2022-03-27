@@ -1,7 +1,14 @@
 (source "jcs-elpa")
 (source "melpa")
 
+(package "company-meta-net" "0.1.0" "Company completion for C# project using meta-net")
+
 (package-file "company-meta-net.el")
+
+(depends-on "emacs" "25.1")
+(depends-on "company")
+(depends-on "meta-net")
+(depends-on "ht")
 
 (development
  (depends-on "ert-runner"))
