@@ -1,6 +1,7 @@
 (package "company-meta-net"
          "0.1.0"
          "Company completion for C# project using meta-net")
+
 (package-file "company-meta-net.el")
 
 (source "jcs-elpa")
