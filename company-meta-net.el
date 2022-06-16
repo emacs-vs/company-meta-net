@@ -4,11 +4,10 @@
 ;; Created date 2021-06-24 21:19:45
 
 ;; Author: Shen, Jen-Chieh <jcs090218@gmail.com>
-;; Description: Company completion for C# project using meta-net
-;; Keyword: csproj csharp company
+;; URL: https://github.com/emacs-vs/company-meta-net
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "25.1") (company "0.8.12") (meta-net "1.1.0") (ht "2.3"))
-;; URL: https://github.com/emacs-vs/company-meta-net
+;; Keywords: csproj csharp company
 
 ;; This file is NOT part of GNU Emacs.
 
