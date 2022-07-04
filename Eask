@@ -3,7 +3,7 @@
          "Company completion for C# project using meta-net")
 
 (website-url "https://github.com/emacs-vs/company-meta-net")
-(keywords "csproj" "csharp" "company")
+(keywords "convenience" "csproj" "csharp" "company")
 
 (package-file "company-meta-net.el")
 
