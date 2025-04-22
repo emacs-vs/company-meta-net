@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "company-meta-net"
          "0.1.0"
          "Company completion for C# project using meta-net")
